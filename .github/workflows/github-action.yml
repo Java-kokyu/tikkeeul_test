@@ -11,7 +11,6 @@ on:
   push:
     branches:
       - main
-      - release
 permissions:
   contents: read
 jobs:
@@ -59,9 +58,9 @@ jobs:
       - name: Docker build
         run: |
           docker login -u ${{ secrets.USERNAME }} -p ${{ secrets.PASSWORD }}
-          docker build -t test .
-          docker tag test qwe382/tikkeeul:${GITHUB_SHA::7}
-          docker push qwe382/tikkeeul:${GITHUB_SHA::7}
+          docker build -t tikkeeul-test .
+          docker tag test qwe382/tikkeeul-test:${GITHUB_SHA::7}
+          docker push qwe382/tikkeeul-test:${GITHUB_SHA::7}
       ## 4 이미지를 서버에서 run
       - name: Deploy
         uses: appleboy/ssh-action@master
@@ -71,7 +70,8 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           envs: GITHUB_SHA
           script: |
-            docker pull qwe382/tikkeeul:${GITHUB_SHA::7}
-            docker tag qwe382/tikkeeul:${GITHUB_SHA::7} tikkeeul
+            docker pull qwe382/tikkeeul-test:${GITHUB_SHA::7}
+            docker tag qwe382/tikkeeul-test:${GITHUB_SHA::7} tikkeeul-test
             docker stop server
-            docker run -d --rm --name server -p 80:8080 tikkeeul
+            sleep 5
+            docker run -d --rm --name server -p 80:8080 tikkeeul-test
