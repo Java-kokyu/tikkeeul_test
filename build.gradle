@@ -1,0 +1,129 @@
+//querydsl 사용을 위한 version 명시
+buildscript {
+    ext {
+        queryDslVersion = "5.0.0"
+    }
+}
+
+plugins {
+    id 'org.springframework.boot' version '2.7.1'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+
+    //querydsl
+    id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10'
+}
+
+group = 'com.hanghae0705'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    //developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    //security & oauth2
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    //db & jpa
+    implementation 'com.h2database:h2:2.1.212'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'mysql:mysql-connector-java'
+
+    //querydsl
+    implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
+    implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
+
+    //lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    //jwt
+    //implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
+    implementation 'com.auth0:java-jwt:3.19.2'
+    implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.2'
+    implementation group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.2'
+    implementation group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.2'
+
+    //validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    //s3
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.248'
+
+    //thymeleaf
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+    //configuration
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+
+    //mail
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    //socket
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.webjars:sockjs-client:1.5.1'
+    implementation 'org.webjars:stomp-websocket:2.3.4'
+
+    //redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation (group: 'it.ozimov', name: 'embedded-redis', version: '0.7.3') {
+        exclude group: 'org.slf4j', module: 'slf4j-simple'
+    }
+
+
+
+}
+
+jar {
+    enabled = false
+}
+
+bootJar{
+    archivesBaseName = 'app'
+    archiveFileName = 'app.jar'
+    archiveVersion = "0.0.0"
+}
+
+//queryDSL 설정 후 gradle > task > other > compileQuerydsl 을 통해 아래 경로에 Q 객체가 생성되도록 할 것
+
+//querydsl 에서 사용할 경로 명명
+def querydslDir = "$buildDir/generated/querydsl"
+
+//jpa 사용 여부와 사용할 경로 설정
+querydsl {
+    jpa = true
+    querydslSourcesDir = querydslDir
+}
+
+// build 시 사용할 sourceSet 추가
+sourceSets {
+    main.java.srcDir querydslDir
+}
+
+//querydsl 컴파일 시 사용할 옵션 설정
+compileQuerydsl {
+    options.annotationProcessorPath = configurations.querydsl
+}
+
+//querydsl이 compileClassPath를 상속하도록 설정
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+    querydsl.extendsFrom compileClasspath
+}
